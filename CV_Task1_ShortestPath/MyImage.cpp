@@ -13,44 +13,72 @@ MyImage::MyImage(std::string path) {
 MyImage::~MyImage() {
 }
 
-bool MyImage::difference(std::string p1, std::string p2){
-	return true;
+/*MyImage::PathPixel getSmallest(std::map<> &vec) {
+	unsigned int index=0;
+	if (vec.size() == 0) return MyImage::PathPixel(-1, -1,-1);
+	MyImage::PathPixel smallest = vec[0];
+	for (MyImage::PathPixel p : vec) {
+		if (p < smallest) smallest = p;
+		index++;
+	}
+	vec.erase(vec.begin() + index);
+	return smallest;
+}*/
+std::string pts(cv::Point p) {
+	std::stringstream s;
+	s << p.x << ":" << p.y;
+	return s.str();
 }
 
-std::vector<cv::Point> MyImage::shortestPath(cv::Point p1, cv::Point p2) {
-	//std::set<MyImage::PathPixel> cost;
-	std::map<std::string, std::string> visited; //Pixel visited From
-	std::stringstream current;
-	current << p1.x << ":" << p1.y;
+std::vector<cv::Point> MyImage::shortestPath(cv::Point start, cv::Point end) {
+	cv::Point smallest(start.x, start.y);
+	int smallestCost = 257;
 
-	std::stringstream end;
-	end << p2.x << ":" << p2.y;
-	
-	//cost.insert(MyImage::PathPixel(p1.x, p2.x, 0));
-	
-	cv::Point currentp = p1;
+	std::map<cv::Point, int> cost;
+	std::map<cv::Point, bool> visited;
+	for (int x = 0; x < image.cols; x++) {
+		for (int y = 0; y < image.rows; y++) {
+			cost[cv::Point(x, y)] = 256; // == 255 + 1
+			visited[cv::Point(x, y)] = false;
+		}
+	}
+	std::map<cv::Point, cv::Point> visitedBy; //Pixel visited From
+	cost[start] = 0;
+	cv::Point current(start.x,start.y);
 
-	while (!(visited.find(end.str()) == visited.end())) {
+
+
+	while (current!=end) {
 		//set neighbour distance
-		for (int x = 0; x < 2; x++) {
-			for (int y = 0; y < 2; y++) {
+		for (int x = -1; x < 2; x++) {
+			for (int y = -1; y < 2; y++) {
 				//unvisited neighbour
-				std::stringstream neighbour;
-				neighbour << currentp.x + x << ":" << currentp.y + y;
-
-				if (
-					(x != currentp.x && y != currentp.y) &&
-					!(visited.find(neighbour.str()) == visited.end())
-					) {
-					double diff;
-					
-						//double newCost = cost[current.str()] + ((cost.find(neighbour.str()) == cost.end()) ? 0 : cost[neighbour.str()]);
+				cv::Point neighbour(current.x+x, current.y+y);
+				if (pointInBounds(neighbour) && !(visited[neighbour]) && (neighbour != current)){
+					int diff = abs(static_cast<int>(image.at<uchar>(neighbour)) - static_cast<int>(image.at<uchar>(current)));
+					int add = (diff + cost[current]);
+					if (add < cost[neighbour]) {
+						cost[neighbour] = add;
+						visitedBy[neighbour] = current;
+						if (add < smallestCost){
+							smallestCost = add;
+							smallest = neighbour;
+						}
 					}
+				}	
 			}
 		}
-		visited[current.str()] = true;
+		visited[current] = true;
+		current = smallest;
 	}
+	//current == smallest == end
 	std::vector<cv::Point> vec;
+	while (current != start) {
+		vec.push_back(current);
+		current = visitedBy[current];
+	}
+	vec.push_back(current);
+	
 	return vec;
 }
 

@@ -5,7 +5,7 @@
 //#include "opencv2/imgcodecs.hpp"
 //#include "opencv2/videoio/videoio.hpp"
 #include "opencv2/highgui.hpp"
-//#include "MyImage.h"
+#include "MyImage.h"
 #include <iostream>
 #include <vector>
 #include <map>
@@ -15,14 +15,7 @@
 
 std::vector<cv::Point> points;
 cv::Mat image;
-
-class testclass {
-public:
-	bool operator<(const std::string& other){
-
-	}
-	std::string test;
-};
+std::vector<MyImage> myimg;
 
 static void negatePixels(std::vector<cv::Point> points) {
 	for (cv::Point p : points) {
@@ -41,14 +34,14 @@ static void handleMouse(int event, int x, int y, int, void*)
 	
 	cv::Point point = cv::Point(x, y);
 	std::stringstream str;
-	str << point.x << " " << point.y << " VALUE " << image.at<uchar>(y,x);
+	str << point.x << " " << point.y << " VALUE " << static_cast<int>(image.at<uchar>(y,x));
 	std::cout << str.str() << std::endl;
 
 	if (points.size() < 2) {
 		points.push_back(point);
 		if (points.size() == 2) {
 			std::cout << "searching for shortest path" << std::endl;
-			//
+			negatePixels(myimg[0].shortestPath(points[0], points[1]));
 			points.clear();
 		}
 	}
@@ -64,8 +57,7 @@ int main(int argc, char** argv)
 	cv::namedWindow("image", 0);
 	cv::setMouseCallback("image", handleMouse, 0);
 	cv::imshow("image", image);
-	
-
+	myimg.push_back(MyImage(fn));
 
 
 	while (!stop) {
