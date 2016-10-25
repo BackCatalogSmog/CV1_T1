@@ -13,11 +13,14 @@
 #include <string>
 #include <set>
 
+//global vars
 std::vector<cv::Point> points;
 cv::Mat image;
 std::vector<MyImage> myimg;
 
-static void negatePixels(std::vector<cv::Point> points) {
+static void negatePixels(std::vector<cv::Point> & points) {
+	//somehow this takes very long
+	//apply negative values to pixels in path and update window
 	for (cv::Point p : points) {
 		image.at<cv::Vec3b>(p.y, p.x)[0] = 255-image.at<cv::Vec3b>(p.y, p.x)[0];
 		image.at<cv::Vec3b>(p.y, p.x)[1] = 255-image.at<cv::Vec3b>(p.y, p.x)[1];
@@ -52,8 +55,7 @@ static void handleMouse(int event, int x, int y, int, void*)
 int main(int argc, char** argv)
 {
 	bool stop = false;
-	char* fn = argc >= 2 ? argv[1] : (char*)"C:\\Users\\Ull\\Desktop\\sadmeme.jpg"; //change dis line  tho
-	image = cv::imread(fn, 1);
+	char* fn = argc >= 2 ? argv[1] : (char*)"fruits.jpg"; 
 	cv::namedWindow("image", 0);
 	cv::setMouseCallback("image", handleMouse, 0);
 	cv::imshow("image", image);
