@@ -31,51 +31,71 @@ std::string pts(cv::Point p) {
 }
 
 std::vector<cv::Point> MyImage::shortestPath(cv::Point start, cv::Point end) {
-	cv::Point smallest(start.x, start.y);
-	int smallestCost = 257;
+//	std::priority_queue<std::pair<int, cv::Point>,std::vector<std::pair<int, cv::Point>>, MyImage::intPointPairComp> pque;
+	//dijkstra using priority queues. Not very fast though due to mishaps trying to optimise early on
 
-	std::map<cv::Point, int> cost;
-	std::map<cv::Point, bool> visited;
+	//priority queue using custom comparator
+	std::priority_queue <
+		std::pair<int, cv::Point>,
+		std::vector<std::pair<int, cv::Point>>,
+		MyImage::intPointPairComp
+	> pque;
+
+	std::map<std::string, int> cost;
+	std::map<std::string, bool> visited;
 	for (int x = 0; x < image.cols; x++) {
 		for (int y = 0; y < image.rows; y++) {
-			cost[cv::Point(x, y)] = 256; // == 255 + 1
-			visited[cv::Point(x, y)] = false;
+			cost[pts(cv::Point(x, y))] = std::numeric_limits<int>::max(); 
+			visited[pts(cv::Point(x, y))] = false;
 		}
 	}
-	std::map<cv::Point, cv::Point> visitedBy; //Pixel visited From
-	cost[start] = 0;
+	std::map<std::string, cv::Point> visitedBy; //Pixel visited From
+	cost[pts(start)] = 0;
 	cv::Point current(start.x,start.y);
 
 
-
+	
 	while (current!=end) {
+		//std::cout << pts(current) << " " << pts(end) << std::endl;
 		//set neighbour distance
 		for (int x = -1; x < 2; x++) {
 			for (int y = -1; y < 2; y++) {
+				//if (visited[pts(current)]) std::cout << "nope";
+				//if (pts(current) == pts(end)) std::cout << "something went wrong";
 				//unvisited neighbour
 				cv::Point neighbour(current.x+x, current.y+y);
-				if (pointInBounds(neighbour) && !(visited[neighbour]) && (neighbour != current)){
+				if (pointInBounds(neighbour) && !(visited[pts(neighbour)]) && (neighbour != current)){
+					//std::cout << "Point " << pts(current) << " visited " << visited[pts(current)];
 					int diff = abs(static_cast<int>(image.at<uchar>(neighbour)) - static_cast<int>(image.at<uchar>(current)));
-					int add = (diff + cost[current]);
-					if (add < cost[neighbour]) {
-						cost[neighbour] = add;
-						visitedBy[neighbour] = current;
-						if (add < smallestCost){
-							smallestCost = add;
-							smallest = neighbour;
-						}
+					int costNeighbour = cost[pts(neighbour)];
+					int add = (diff + cost[pts(current)]);
+					if (add < costNeighbour) {
+						cost[pts(neighbour)] = add;
+						visitedBy[pts(neighbour)] = current;
+						pque.push(std::pair<int, cv::Point>(add, neighbour));
 					}
-				}	
+				}
+				
 			}
+			
 		}
-		visited[current] = true;
-		current = smallest;
+		visited[pts(current)] = true;
+		std::pair<int, cv::Point> pr = pque.top();
+		pque.pop();
+		//As updated values do not get removed, check for "visited" is necessary
+		while (visited[pts(pr.second)]) {
+			pr = pque.top();
+			pque.pop();
+		}
+		current = pr.second;
+		
 	}
 	//current == smallest == end
 	std::vector<cv::Point> vec;
+	std::cout << "here!" << std::endl;
 	while (current != start) {
 		vec.push_back(current);
-		current = visitedBy[current];
+		current = visitedBy[pts(current)];
 	}
 	vec.push_back(current);
 	

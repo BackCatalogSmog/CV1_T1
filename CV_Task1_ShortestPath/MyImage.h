@@ -6,6 +6,9 @@
 #include <sstream>
 #include <string>
 #include <algorithm>
+#include <iostream>
+#include <utility>
+#include <queue>
 
 class MyImage
 {
@@ -16,9 +19,13 @@ public:
 	std::vector<cv::Point> shortestPath(cv::Point start, cv::Point end);
 	cv::Mat getImage();
 
+	struct intPointPairComp {
+		bool operator()(const std::pair<int, cv::Point> & p1, const std::pair<int, cv::Point> & p2) {
+			return (p1.first > p2.first);
+		}
+	};
 
-
-
+	/*
 	class PathPixel {
 	public:
 		PathPixel(int x1, int y1, double cost1) :p(x1,y1), cost(cost1) {};
@@ -35,7 +42,7 @@ public:
 		}
 	private:
 		
-	};
+	};*/
 
 	cv::Mat image;
 	cv::Size s;
